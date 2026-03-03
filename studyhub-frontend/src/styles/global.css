@@ -1,0 +1,32 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+
+:root {
+  /* DARK THEME: Midnight Studio */
+  --bg: #020617;
+  --panel: #0f172a;
+  --text: #f8fafc;
+  --accent: #6366f1; 
+  --border: rgba(255, 255, 255, 0.08);
+  --radius: 20px; /* The flattering soft-square curve */
+}
+
+[data-theme='light'] {
+  /* LIGHT THEME: Minimalist Steel (No dull grays) */
+  --bg: #f1f5f9;
+  --panel: #ffffff;
+  --text: #0f172a;
+  --accent: #334155; 
+  --border: rgba(15, 23, 42, 0.08);
+  --radius: 20px;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  transition: background 0.2s ease;
+}
+
+.fade-in { animation: fadeIn 0.4s ease-out forwards; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
