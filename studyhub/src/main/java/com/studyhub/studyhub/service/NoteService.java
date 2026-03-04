@@ -19,52 +19,47 @@ public class NoteService {
     @Autowired
     private UserRepository userRepository;
 
-    // ✅ Create Note
     public Note createNoteByEmail(String email, Note note) {
+
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
         note.setUser(user);
+
         return noteRepository.save(note);
     }
 
-    // ✅ Get all notes of a user
     public List<Note> getUserNotesByEmail(String email) {
+
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
         return noteRepository.findByUserId(user.getId());
     }
 
-    // ✅ Get all public notes
-    public List<Note> getPublicNotes() {
-        return noteRepository.findByIsPublicTrue();
-    }
-
-    // ✅ Update Note logic
     public Note updateNoteByEmail(Long noteId, Note updatedNote, String email) {
-        Note note = noteRepository.findById(noteId)
+
+        Note existingNote = noteRepository.findById(noteId)
                 .orElseThrow(() -> new RuntimeException("Note not found"));
 
-        // Ownership check: Only owner can update
-        if (!note.getUser().getEmail().equals(email)) {
-            throw new RuntimeException("Unauthorized update attempt");
+        if (!existingNote.getUser().getEmail().equals(email)) {
+            throw new RuntimeException("Unauthorized");
         }
 
-        note.setTitle(updatedNote.getTitle());
-        note.setContent(updatedNote.getContent());
-        
-        // 🔥 This will now receive the boolean correctly because of @JsonProperty in Note.java
-        note.setPublic(updatedNote.isPublic());
+        existingNote.setTitle(updatedNote.getTitle());
+        existingNote.setContent(updatedNote.getContent());
+        existingNote.setPublic(updatedNote.isPublic());  // IMPORTANT
 
-        return noteRepository.save(note);
+        return noteRepository.save(existingNote);
     }
 
-    // ✅ Delete Note
     public void deleteNoteByEmail(Long noteId, String email) {
+
         Note note = noteRepository.findById(noteId)
                 .orElseThrow(() -> new RuntimeException("Note not found"));
 
         if (!note.getUser().getEmail().equals(email)) {
-            throw new RuntimeException("You cannot delete this note");
+            throw new RuntimeException("Unauthorized");
         }
 
         noteRepository.delete(note);

@@ -23,57 +23,28 @@ public class NoteController {
     @Autowired
     private NoteService noteService;
 
-    // ✅ Create Note
-   @PostMapping
-public Note createNote(@RequestBody Note note) {
-
-    String email = SecurityContextHolder.getContext()
-            .getAuthentication()
-            .getName();
-
-    return noteService.createNoteByEmail(email, note);
-}
-
-    // ✅ Get all notes of a user
-    @GetMapping("/my/{userId}")
-    public List<Note> getUserNotes(@PathVariable Long userId) {
-        return noteService.getUserNotes(userId);
+    @PostMapping
+    public Note createNote(@RequestBody Note note) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return noteService.createNoteByEmail(email, note);
     }
 
-    // ✅ Get all public notes
-    @GetMapping("/public")
-    public List<Note> getPublicNotes() {
-        return noteService.getPublicNotes();
+    @GetMapping("/my")
+    public List<Note> getMyNotes() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return noteService.getUserNotesByEmail(email);
     }
-  @PutMapping("/{noteId}")
-public Note updateNote(@PathVariable Long noteId, @RequestBody Note note) {
 
-    String email = SecurityContextHolder.getContext()
-            .getAuthentication()
-            .getName();
+    @PutMapping("/{noteId}")
+    public Note updateNote(@PathVariable Long noteId, @RequestBody Note note) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return noteService.updateNoteByEmail(noteId, note, email);
+    }
 
-    return noteService.updateNoteByEmail(noteId, note, email);
-}
-// ✅ Change: Removed /{userId} from the mapping
-@GetMapping("/my")
-public List<Note> getUserNotes() {
-    // Extract email from JWT automatically
-    String email = SecurityContextHolder.getContext()
-            .getAuthentication()
-            .getName();
-
-    return noteService.getUserNotesByEmail(email);
-}
-
-@DeleteMapping("/{noteId}")
-public String deleteNote(@PathVariable Long noteId) {
-
-    String email = SecurityContextHolder.getContext()
-            .getAuthentication()
-            .getName();
-
-    noteService.deleteNoteByEmail(noteId, email);
-
-    return "Note deleted successfully";
-}
+    @DeleteMapping("/{noteId}")
+    public String deleteNote(@PathVariable Long noteId) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        noteService.deleteNoteByEmail(noteId, email);
+        return "Deleted successfully";
+    }
 }

@@ -1,25 +1,23 @@
-// import API from "../api/axiosConfig";
+import axios from 'axios';
 
-// export const getMyNotes = () => {
-//   return API.get("/notes/my");
-// };
+const API_URL = "http://localhost:8080/api/notes";
 
-// export const createNote = (note) => {
-//   return API.post("/notes", note);
-// };
-
-// export const deleteNote = (id) => {
-//   return API.delete(`/notes/${id}`);
-// };
-import API from "../api/axiosConfig";
+const getAuthHeader = () => {
+    const token = localStorage.getItem('token');
+    return { headers: { Authorization: `Bearer ${token}` } };
+};
 
 export const noteService = {
-  getMyNotes: () => API.get("/notes/my"),
-  
-  createNote: (noteData) => API.post("/notes", noteData),
-  
-  // Requirement: Update/Edit note
-  updateNote: (id, noteData) => API.put(`/notes/${id}`, noteData),
-  
-  deleteNote: (id) => API.delete(`/notes/${id}`),
+    getMyNotes: () => axios.get(`${API_URL}/my`, getAuthHeader()),
+
+    getPublicNotes: () => axios.get(`${API_URL}/public`, getAuthHeader()),
+
+    createNote: (noteData) => axios.post(API_URL, noteData, getAuthHeader()),
+
+    updateNote: (noteId, noteData) => axios.put(`${API_URL}/${noteId}`, noteData, getAuthHeader()),
+
+    deleteNote: (noteId) => axios.delete(`${API_URL}/${noteId}`, getAuthHeader()),
+
+    // ✅ FIXED: Correctly added inside the object
+    likeNote: (noteId) => axios.post(`${API_URL}/${noteId}/like`, {}, getAuthHeader())
 };
