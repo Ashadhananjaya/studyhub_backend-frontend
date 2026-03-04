@@ -64,4 +64,7 @@ public class NoteService {
 
         noteRepository.delete(note);
     }
+    public List<Note> getPublicNotes() {
+    return noteRepository.findByIsPublicTrue();
+}
 }

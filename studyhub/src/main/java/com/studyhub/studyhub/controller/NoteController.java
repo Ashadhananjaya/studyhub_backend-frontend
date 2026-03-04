@@ -47,4 +47,8 @@ public class NoteController {
         noteService.deleteNoteByEmail(noteId, email);
         return "Deleted successfully";
     }
+    @GetMapping("/public")
+public List<Note> getPublicNotes() {
+    return noteService.getPublicNotes();
+}
 }
