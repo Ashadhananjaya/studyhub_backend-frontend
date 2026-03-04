@@ -67,4 +67,5 @@ public class NoteService {
     public List<Note> getPublicNotes() {
     return noteRepository.findByIsPublicTrue();
 }
+
 }

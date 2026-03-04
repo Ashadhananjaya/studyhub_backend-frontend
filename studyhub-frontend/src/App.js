@@ -6,6 +6,7 @@ import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import Background3D from "./components/Background3D";
 import { isAuthenticated } from "./utils/authUtils";
+import Community from "./pages/Community";
 
 
 function App() {
@@ -26,6 +27,12 @@ function App() {
             isAuthenticated() ? <Dashboard /> : <Navigate to="/login" />
           }
         />
+        <Route
+  path="/community"
+  element={
+    isAuthenticated() ? <Community /> : <Navigate to="/login" />
+  }
+/>
        
 
         <Route path="*" element={<Navigate to="/" />} />

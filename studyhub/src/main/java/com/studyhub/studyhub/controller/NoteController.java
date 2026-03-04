@@ -51,4 +51,5 @@ public class NoteController {
 public List<Note> getPublicNotes() {
     return noteService.getPublicNotes();
 }
+
 }
