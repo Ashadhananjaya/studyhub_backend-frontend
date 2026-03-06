@@ -47,9 +47,15 @@ public class NoteController {
         noteService.deleteNoteByEmail(noteId, email);
         return "Deleted successfully";
     }
-    @GetMapping("/public")
-public List<Note> getPublicNotes() {
-    return noteService.getPublicNotes();
-}
 
+    @GetMapping("/public")
+    public List<Note> getPublicNotes() {
+        return noteService.getPublicNotes();
+    }
+
+    // NEW: Like endpoint - authenticated users can like any note
+    @PostMapping("/{noteId}/like")
+    public Note likeNote(@PathVariable Long noteId) {
+        return noteService.likeNote(noteId);
+    }
 }

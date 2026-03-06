@@ -1,5 +1,6 @@
 package com.studyhub.studyhub.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,17 +21,17 @@ public class NoteService {
     private UserRepository userRepository;
 
     public Note createNoteByEmail(String email, Note note) {
-
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         note.setUser(user);
+        note.setCreatedAt(LocalDateTime.now());
+        note.setLikes(0);
 
         return noteRepository.save(note);
     }
 
     public List<Note> getUserNotesByEmail(String email) {
-
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -38,7 +39,6 @@ public class NoteService {
     }
 
     public Note updateNoteByEmail(Long noteId, Note updatedNote, String email) {
-
         Note existingNote = noteRepository.findById(noteId)
                 .orElseThrow(() -> new RuntimeException("Note not found"));
 
@@ -48,13 +48,13 @@ public class NoteService {
 
         existingNote.setTitle(updatedNote.getTitle());
         existingNote.setContent(updatedNote.getContent());
-        existingNote.setPublic(updatedNote.isPublic());  // IMPORTANT
+        // FIX: use correct setter
+        existingNote.setPublicNote(updatedNote.isPublicNote());
 
         return noteRepository.save(existingNote);
     }
 
     public void deleteNoteByEmail(Long noteId, String email) {
-
         Note note = noteRepository.findById(noteId)
                 .orElseThrow(() -> new RuntimeException("Note not found"));
 
@@ -64,8 +64,18 @@ public class NoteService {
 
         noteRepository.delete(note);
     }
-    public List<Note> getPublicNotes() {
-    return noteRepository.findByIsPublicTrue();
-}
 
+    public List<Note> getPublicNotes() {
+        // FIX: use correct repository method
+        return noteRepository.findByPublicNoteTrue();
+    }
+
+    // NEW: Like a note (anyone can like, increments count)
+    public Note likeNote(Long noteId) {
+        Note note = noteRepository.findById(noteId)
+                .orElseThrow(() -> new RuntimeException("Note not found"));
+
+        note.setLikes(note.getLikes() + 1);
+        return noteRepository.save(note);
+    }
 }

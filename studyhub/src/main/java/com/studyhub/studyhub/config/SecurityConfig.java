@@ -22,7 +22,6 @@ public class SecurityConfig {
     @Autowired
     private JwtFilter jwtFilter;
 
-    // ✅ CORS configuration
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
@@ -36,21 +35,16 @@ public class SecurityConfig {
         return source;
     }
 
-    // ✅ Security filter chain
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                // 🔓 Public Endpoints (No login required)
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/notes/public").permitAll() 
-                
-                // 🔥 Swagger/OpenAPI Endpoints
-                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                
-                // 🔒 Everything else requires login
+                // Allow public notes to be read without login
+                .requestMatchers("/api/notes/public").permitAll()
+                // Everything else needs a token
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
@@ -58,7 +52,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // ✅ Password encoder
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

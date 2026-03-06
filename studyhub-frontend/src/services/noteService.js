@@ -8,16 +8,22 @@ const getAuthHeader = () => {
 };
 
 export const noteService = {
-    getMyNotes: () => axios.get(`${API_URL}/my`, getAuthHeader()),
 
-    getPublicNotes: () => axios.get(`${API_URL}/public`, getAuthHeader()),
+    getMyNotes: () =>
+        axios.get(`${API_URL}/my`, getAuthHeader()),
 
-    createNote: (noteData) => axios.post(API_URL, noteData, getAuthHeader()),
+    getPublicNotes: () =>
+        axios.get(`${API_URL}/public`),
 
-    updateNote: (noteId, noteData) => axios.put(`${API_URL}/${noteId}`, noteData, getAuthHeader()),
+    createNote: (noteData) =>
+        axios.post(API_URL, noteData, getAuthHeader()),
 
-    deleteNote: (noteId) => axios.delete(`${API_URL}/${noteId}`, getAuthHeader()),
+    updateNote: (noteId, noteData) =>
+        axios.put(`${API_URL}/${noteId}`, noteData, getAuthHeader()),
 
-    // ✅ FIXED: Correctly added inside the object
-    likeNote: (noteId) => axios.post(`${API_URL}/${noteId}/like`, {}, getAuthHeader())
+    deleteNote: (noteId) =>
+        axios.delete(`${API_URL}/${noteId}`, getAuthHeader()),
+
+    likeNote: (noteId) =>
+        axios.post(`${API_URL}/${noteId}/like`, {}, getAuthHeader()),
 };
