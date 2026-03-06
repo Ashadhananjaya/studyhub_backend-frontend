@@ -12,8 +12,11 @@ export const noteService = {
     getMyNotes: () =>
         axios.get(`${API_URL}/my`, getAuthHeader()),
 
-    getPublicNotes: () =>
-        axios.get(`${API_URL}/public`),
+    // Now accepts page, size, sortBy for pagination
+    getPublicNotes: (page = 0, size = 12, sortBy = "createdAt") =>
+        axios.get(`${API_URL}/public`, {
+            params: { page, size, sortBy }
+        }),
 
     createNote: (noteData) =>
         axios.post(API_URL, noteData, getAuthHeader()),

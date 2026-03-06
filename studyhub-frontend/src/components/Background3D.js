@@ -24,7 +24,8 @@ export default function Background3D() {
     particles.setAttribute('position', new THREE.BufferAttribute(posArr, 3));
     const material = new THREE.PointsMaterial({
       size: 0.12,
-      color: '#818cf8',
+  
+color: document.documentElement.getAttribute('data-theme') === 'light' ? '#6366f1' : '#818cf8',
       transparent: true,
       opacity: 0.6
     });

@@ -2,10 +2,17 @@ package com.studyhub.studyhub.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import com.studyhub.studyhub.dto.NoteRequestDTO;
+import com.studyhub.studyhub.dto.NoteResponseDTO;
 import com.studyhub.studyhub.model.Note;
 import com.studyhub.studyhub.model.User;
 import com.studyhub.studyhub.repository.NoteRepository;
@@ -20,38 +27,44 @@ public class NoteService {
     @Autowired
     private UserRepository userRepository;
 
-    public Note createNoteByEmail(String email, Note note) {
+    public NoteResponseDTO createNoteByEmail(String email, NoteRequestDTO dto) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        Note note = new Note();
+        note.setTitle(dto.getTitle());
+        note.setContent(dto.getContent());
+        note.setPublicNote(dto.isPublic());
         note.setUser(user);
         note.setCreatedAt(LocalDateTime.now());
         note.setLikes(0);
 
-        return noteRepository.save(note);
+        return NoteResponseDTO.from(noteRepository.save(note));
     }
 
-    public List<Note> getUserNotesByEmail(String email) {
+    public List<NoteResponseDTO> getUserNotesByEmail(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        return noteRepository.findByUserId(user.getId());
+        return noteRepository.findByUserId(user.getId())
+                .stream()
+                .map(NoteResponseDTO::from)
+                .collect(Collectors.toList());
     }
 
-    public Note updateNoteByEmail(Long noteId, Note updatedNote, String email) {
-        Note existingNote = noteRepository.findById(noteId)
+    public NoteResponseDTO updateNoteByEmail(Long noteId, NoteRequestDTO dto, String email) {
+        Note existing = noteRepository.findById(noteId)
                 .orElseThrow(() -> new RuntimeException("Note not found"));
 
-        if (!existingNote.getUser().getEmail().equals(email)) {
+        if (!existing.getUser().getEmail().equals(email)) {
             throw new RuntimeException("Unauthorized");
         }
 
-        existingNote.setTitle(updatedNote.getTitle());
-        existingNote.setContent(updatedNote.getContent());
-        // FIX: use correct setter
-        existingNote.setPublicNote(updatedNote.isPublicNote());
+        existing.setTitle(dto.getTitle());
+        existing.setContent(dto.getContent());
+        existing.setPublicNote(dto.isPublic());
 
-        return noteRepository.save(existingNote);
+        return NoteResponseDTO.from(noteRepository.save(existing));
     }
 
     public void deleteNoteByEmail(Long noteId, String email) {
@@ -65,17 +78,21 @@ public class NoteService {
         noteRepository.delete(note);
     }
 
-    public List<Note> getPublicNotes() {
-        // FIX: use correct repository method
-        return noteRepository.findByPublicNoteTrue();
+    public Page<NoteResponseDTO> getPublicNotes(int page, int size, String sortBy) {
+        String safeSort = List.of("createdAt", "likes", "title").contains(sortBy)
+                ? sortBy : "createdAt";
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(safeSort).descending());
+
+        return noteRepository.findByPublicNoteTrue(pageable)
+                .map(NoteResponseDTO::from);
     }
 
-    // NEW: Like a note (anyone can like, increments count)
-    public Note likeNote(Long noteId) {
+    public NoteResponseDTO likeNote(Long noteId) {
         Note note = noteRepository.findById(noteId)
                 .orElseThrow(() -> new RuntimeException("Note not found"));
 
         note.setLikes(note.getLikes() + 1);
-        return noteRepository.save(note);
+        return NoteResponseDTO.from(noteRepository.save(note));
     }
 }

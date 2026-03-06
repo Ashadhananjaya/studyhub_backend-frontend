@@ -1,164 +1,176 @@
-import React from "react";
-import ReactMarkdown from 'react-markdown';
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import ReactMarkdown from "react-markdown";
+import { Edit2, Trash2, Globe, Lock, Link2, Heart } from "lucide-react";
+import toast from "react-hot-toast";
+import NoteModal from "./NoteModal";
+
+const PREVIEW_LENGTH = 180;
 
 export default function NoteCard({ note, onDelete, onEdit, onToggle, onLike, readonly }) {
-
-  // FIX: Backend now correctly sends "isPublic" via @JsonProperty
   const isPublic = note.isPublic;
+  const [showModal, setShowModal] = useState(false);
+  const [likeAnim, setLikeAnim]   = useState(false);
+  const [tilt, setTilt]           = useState({ x: 0, y: 0 });
+
+  const isLong  = note.content && note.content.length > PREVIEW_LENGTH;
+  const preview = isLong ? note.content.slice(0, PREVIEW_LENGTH) + "..." : note.content;
+
+  const handleMouseMove = (e) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    setTilt({
+      x:  ((e.clientY - r.top)  / r.height - 0.5) * 8,
+      y:  ((e.clientX - r.left) / r.width  - 0.5) * -8,
+    });
+  };
+
+  const handleCopyLink = () => {
+    const url = `${window.location.origin}/community?note=${note.id}`;
+    navigator.clipboard.writeText(url)
+      .then(() => toast.success("Link copied!"))
+      .catch(() => toast.error("Could not copy."));
+  };
+
+  const handleDelete = () => {
+    toast(
+      (t) => (
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          <span style={{ fontWeight: "600", fontSize: "0.9rem" }}>Delete this note?</span>
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button onClick={() => { toast.dismiss(t.id); onDelete(note.id); }}
+              style={cS.danger}>Delete</button>
+            <button onClick={() => toast.dismiss(t.id)}
+              style={cS.cancel}>Cancel</button>
+          </div>
+        </div>
+      ),
+      { duration: 5000 }
+    );
+  };
+
+  const handleToggle = () => {
+    const next = !isPublic;
+    toast.promise(Promise.resolve(onToggle(note)), {
+      loading: next ? "Making public..." : "Making private...",
+      success: next ? "Visible in Community now" : "Note set to private",
+      error: "Failed to update."
+    });
+  };
+
+  const handleLike = () => {
+    if (!onLike) return;
+    setLikeAnim(true);
+    setTimeout(() => setLikeAnim(false), 600);
+    onLike(note.id);
+  };
 
   return (
-    <div style={styles.card} className="fade-in">
-
-      {/* HEADER */}
-      <div style={styles.header}>
-        <div style={styles.statusGroup}>
-          <div style={{ ...styles.dot, backgroundColor: isPublic ? '#10b981' : '#6366f1' }} />
-          <span style={styles.statusText}>{isPublic ? "PUBLIC" : "PRIVATE"}</span>
-        </div>
-        {!readonly && (
-          <div style={styles.actions}>
-            <button style={styles.textAction} onClick={() => onEdit(note)}>Edit</button>
-            <button style={{ ...styles.textAction, color: '#f87171' }} onClick={() => onDelete(note.id)}>Delete</button>
+    <>
+      <motion.div
+        style={s.card}
+        animate={{ rotateX: tilt.x, rotateY: tilt.y }}
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={() => setTilt({ x: 0, y: 0 })}
+        whileHover={{ y: -4, boxShadow: "0 20px 40px rgba(0,0,0,0.25)" }}
+      >
+        {/* HEADER */}
+        <div style={s.header}>
+          <div style={s.statusRow}>
+            <span
+              className="pulse-dot"
+              style={{ backgroundColor: isPublic ? "var(--success)" : "var(--accent)" }}
+            />
+            <span style={{ ...s.statusLabel, color: isPublic ? "var(--success)" : "var(--accent)" }}>
+              {isPublic ? "Public" : "Private"}
+            </span>
           </div>
-        )}
-      </div>
-
-      {/* TITLE */}
-      <h3 style={styles.title}>{note.title}</h3>
-
-      {/* CONTENT - markdown rendered */}
-      <div style={styles.content}>
-        <ReactMarkdown>{note.content}</ReactMarkdown>
-      </div>
-
-      {/* FOOTER */}
-      <div style={styles.footer}>
-
-        <span style={styles.date}>
-          {note.createdAt ? new Date(note.createdAt).toLocaleDateString() : ""}
-        </span>
-
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-
-          {/* LIKE BUTTON - shown to everyone */}
-          <button onClick={() => onLike && onLike(note.id)} style={styles.likeBtn}>
-            ❤️ <span style={styles.likeCount}>{note.likes || 0}</span>
-          </button>
-
-          {/* TOGGLE PUBLIC / PRIVATE - only for note owner */}
           {!readonly && (
-            <button
-              style={{
-                ...styles.visibilityBtn,
-                background: isPublic ? 'rgba(16,185,129,0.1)' : 'rgba(99,102,241,0.1)',
-                color: isPublic ? '#10b981' : '#6366f1'
-              }}
-              onClick={() => onToggle(note)}
-            >
-              {isPublic ? "Set Private" : "Set Public"}
-            </button>
+            <div style={s.actions}>
+              <motion.button style={s.iconAction} onClick={() => onEdit(note)}
+                whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.9 }} title="Edit">
+                <Edit2 size={13} />
+              </motion.button>
+              <motion.button style={{ ...s.iconAction, color: "var(--danger)" }}
+                onClick={handleDelete} whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.9 }} title="Delete">
+                <Trash2 size={13} />
+              </motion.button>
+            </div>
           )}
-
         </div>
-      </div>
 
-    </div>
+        {/* TITLE */}
+        <h3 style={s.title}>{note.title}</h3>
+
+        {/* CONTENT */}
+        <div style={s.content}><ReactMarkdown>{preview}</ReactMarkdown></div>
+
+        {/* READ MORE */}
+        {isLong && (
+          <button style={s.readMore} onClick={() => setShowModal(true)}>Read more →</button>
+        )}
+
+        {/* FOOTER */}
+        <div style={s.footer}>
+          <span style={s.date}>
+            {note.createdAt
+              ? new Date(note.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+              : ""}
+          </span>
+
+          <div style={s.footerRight}>
+            <motion.button style={s.likeBtn} onClick={handleLike}
+              animate={likeAnim ? { scale: [1, 1.5, 0.85, 1] } : {}}
+              transition={{ duration: 0.4 }}>
+              <Heart size={14}
+                fill={likeAnim ? "var(--danger)" : "none"}
+                color={likeAnim ? "var(--danger)" : "var(--text-muted)"} />
+              <span style={s.likeCount}>{note.likes || 0}</span>
+            </motion.button>
+
+            {isPublic && (
+              <motion.button style={s.iconBtn} onClick={handleCopyLink}
+                whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} title="Copy link">
+                <Link2 size={13} color="var(--text-muted)" />
+              </motion.button>
+            )}
+
+            {!readonly && (
+              <motion.button
+                style={{ ...s.toggleBtn, background: isPublic ? "var(--success-dim)" : "var(--accent-dim)", color: isPublic ? "var(--success)" : "var(--accent)" }}
+                onClick={handleToggle} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                {isPublic ? <><Lock size={11} /> Private</> : <><Globe size={11} /> Public</>}
+              </motion.button>
+            )}
+          </div>
+        </div>
+      </motion.div>
+
+      {showModal && <NoteModal note={note} onClose={() => setShowModal(false)} />}
+    </>
   );
 }
 
-const styles = {
-  card: {
-    background: "var(--panel)",
-    border: "1px solid var(--border)",
-    padding: "28px",
-    borderRadius: "20px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "15px",
-    transition: "transform 0.2s ease, box-shadow 0.2s ease"
-  },
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center"
-  },
-  statusGroup: {
-    display: "flex",
-    alignItems: "center",
-    gap: "8px"
-  },
-  dot: {
-    width: "8px",
-    height: "8px",
-    borderRadius: "50%"
-  },
-  statusText: {
-    fontSize: "0.7rem",
-    fontWeight: "800",
-    opacity: 0.7,
-    letterSpacing: "1px"
-  },
-  actions: {
-    display: "flex",
-    gap: "15px"
-  },
-  textAction: {
-    background: "none",
-    border: "none",
-    color: "var(--text)",
-    cursor: "pointer",
-    fontSize: "0.8rem",
-    fontWeight: "700",
-    opacity: 0.6
-  },
-  title: {
-    margin: "5px 0",
-    fontSize: "1.2rem",
-    fontWeight: "800",
-    color: "var(--text)"
-  },
-  content: {
-    color: "var(--text)",
-    opacity: 0.8,
-    fontSize: "0.95rem",
-    lineHeight: "1.6",
-    minHeight: "60px"
-  },
-  footer: {
-    marginTop: "10px",
-    paddingTop: "18px",
-    borderTop: "1px solid var(--border)",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center"
-  },
-  date: {
-    fontSize: "0.75rem",
-    color: "var(--text)",
-    opacity: 0.4
-  },
-  likeBtn: {
-    background: "none",
-    border: "none",
-    cursor: "pointer",
-    fontSize: "1rem",
-    padding: "4px 8px",
-    borderRadius: "8px",
-    display: "flex",
-    alignItems: "center",
-    gap: "4px"
-  },
-  likeCount: {
-    fontSize: "0.8rem",
-    color: "var(--text)",
-    opacity: 0.7
-  },
-  visibilityBtn: {
-    border: "none",
-    padding: "6px 14px",
-    borderRadius: "10px",
-    fontSize: "0.7rem",
-    fontWeight: "800",
-    cursor: "pointer"
-  }
+const cS = {
+  danger: { background: "var(--danger)", color: "white", border: "none", padding: "6px 14px", borderRadius: "8px", cursor: "pointer", fontWeight: "600", fontSize: "0.82rem", fontFamily: "'DM Sans', sans-serif" },
+  cancel: { background: "transparent", color: "var(--text)", border: "1px solid var(--border)", padding: "6px 14px", borderRadius: "8px", cursor: "pointer", fontWeight: "600", fontSize: "0.82rem", fontFamily: "'DM Sans', sans-serif" }
+};
+
+const s = {
+  card: { background: "var(--panel)", border: "1px solid var(--border)", borderRadius: "20px", padding: "24px", display: "flex", flexDirection: "column", gap: "14px" },
+  header: { display: "flex", justifyContent: "space-between", alignItems: "center" },
+  statusRow: { display: "flex", alignItems: "center", gap: "8px" },
+  statusLabel: { fontSize: "0.7rem", fontWeight: "700", letterSpacing: "0.5px", textTransform: "uppercase" },
+  actions: { display: "flex", gap: "2px" },
+  iconAction: { background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "6px", borderRadius: "8px", display: "flex", alignItems: "center" },
+  title: { fontFamily: "'DM Serif Display', serif", fontSize: "1.15rem", color: "var(--text)", lineHeight: 1.3 },
+  content: { color: "var(--text-muted)", fontSize: "0.875rem", lineHeight: 1.7, minHeight: "50px" },
+  readMore: { background: "none", border: "none", color: "var(--accent-light)", cursor: "pointer", fontSize: "0.82rem", fontWeight: "600", padding: 0, alignSelf: "flex-start", fontFamily: "'DM Sans', sans-serif" },
+  footer: { paddingTop: "14px", borderTop: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" },
+  date: { fontSize: "0.72rem", color: "var(--text-dim)" },
+  footerRight: { display: "flex", alignItems: "center", gap: "4px" },
+  likeBtn: { background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "5px", padding: "5px 8px", borderRadius: "8px", fontFamily: "'DM Sans', sans-serif" },
+  likeCount: { fontSize: "0.78rem", color: "var(--text-muted)" },
+  iconBtn: { background: "none", border: "none", cursor: "pointer", padding: "6px", borderRadius: "8px", display: "flex", alignItems: "center" },
+  toggleBtn: { display: "flex", alignItems: "center", gap: "5px", border: "none", padding: "5px 10px", borderRadius: "8px", fontSize: "0.7rem", fontWeight: "700", cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }
 };
