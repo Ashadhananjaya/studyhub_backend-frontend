@@ -27,6 +27,9 @@ public class NoteService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private AIService aiService;
+
     public NoteResponseDTO createNoteByEmail(String email, NoteRequestDTO dto) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -38,6 +41,16 @@ public class NoteService {
         note.setUser(user);
         note.setCreatedAt(LocalDateTime.now());
         note.setLikes(0);
+
+        // AI embedding — optional, won't crash if AI service is down
+        try {
+            if (dto.getContent() != null && !dto.getContent().isBlank()) {
+                List<Double> embedding = aiService.getEmbedding(dto.getContent());
+                note.setEmbedding(embedding);
+            }
+        } catch (Exception e) {
+            System.out.println("[AI] Embedding skipped: " + e.getMessage());
+        }
 
         return NoteResponseDTO.from(noteRepository.save(note));
     }
@@ -63,6 +76,16 @@ public class NoteService {
         existing.setTitle(dto.getTitle());
         existing.setContent(dto.getContent());
         existing.setPublicNote(dto.isPublic());
+
+        // Update embedding too if AI is available
+        try {
+            if (dto.getContent() != null && !dto.getContent().isBlank()) {
+                List<Double> embedding = aiService.getEmbedding(dto.getContent());
+                existing.setEmbedding(embedding);
+            }
+        } catch (Exception e) {
+            System.out.println("[AI] Embedding update skipped: " + e.getMessage());
+        }
 
         return NoteResponseDTO.from(noteRepository.save(existing));
     }

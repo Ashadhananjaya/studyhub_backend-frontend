@@ -1,23 +1,24 @@
 package com.studyhub.studyhub.dto;
 
-import java.time.LocalDateTime;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.studyhub.studyhub.model.Note;
+import java.time.LocalDateTime;
 
 public class NoteResponseDTO {
 
     private Long id;
     private String title;
     private String content;
+
+    // FIX: same isPublic bug - must use @JsonProperty so frontend gets "isPublic" not "public"
+    @JsonProperty("isPublic")
     private boolean isPublic;
+
     private int likes;
     private LocalDateTime createdAt;
-
-    // Only expose safe user info — never the full User entity (which has password hash etc.)
     private String authorName;
     private String authorEmail;
 
-    // Static factory — converts Note entity → DTO cleanly
     public static NoteResponseDTO from(Note note) {
         NoteResponseDTO dto = new NoteResponseDTO();
         dto.id          = note.getId();
@@ -35,14 +36,15 @@ public class NoteResponseDTO {
         return dto;
     }
 
-    // ── Getters ──────────────────────────────────────────────
+    public Long getId()                 { return id; }
+    public String getTitle()            { return title; }
+    public String getContent()          { return content; }
 
-    public Long getId()                { return id; }
-    public String getTitle()           { return title; }
-    public String getContent()         { return content; }
-    public boolean isPublic()          { return isPublic; }
-    public int getLikes()              { return likes; }
-    public LocalDateTime getCreatedAt(){ return createdAt; }
-    public String getAuthorName()      { return authorName; }
-    public String getAuthorEmail()     { return authorEmail; }
+    @JsonProperty("isPublic")
+    public boolean isPublic()           { return isPublic; }
+
+    public int getLikes()               { return likes; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public String getAuthorName()       { return authorName; }
+    public String getAuthorEmail()      { return authorEmail; }
 }

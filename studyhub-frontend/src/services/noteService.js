@@ -1,32 +1,24 @@
-import axios from 'axios';
-
-const API_URL = "http://localhost:8080/api/notes";
-
-const getAuthHeader = () => {
-    const token = localStorage.getItem('token');
-    return { headers: { Authorization: `Bearer ${token}` } };
-};
+import API from "../api/axiosConfig";
 
 export const noteService = {
 
     getMyNotes: () =>
-        axios.get(`${API_URL}/my`, getAuthHeader()),
+        API.get("/notes/my"),
 
-    // Now accepts page, size, sortBy for pagination
     getPublicNotes: (page = 0, size = 12, sortBy = "createdAt") =>
-        axios.get(`${API_URL}/public`, {
+        API.get("/notes/public", {
             params: { page, size, sortBy }
         }),
 
     createNote: (noteData) =>
-        axios.post(API_URL, noteData, getAuthHeader()),
+        API.post("/notes", noteData),
 
     updateNote: (noteId, noteData) =>
-        axios.put(`${API_URL}/${noteId}`, noteData, getAuthHeader()),
+        API.put(`/notes/${noteId}`, noteData),
 
     deleteNote: (noteId) =>
-        axios.delete(`${API_URL}/${noteId}`, getAuthHeader()),
+        API.delete(`/notes/${noteId}`),
 
     likeNote: (noteId) =>
-        axios.post(`${API_URL}/${noteId}/like`, {}, getAuthHeader()),
+        API.post(`/notes/${noteId}/like`, {}),
 };
