@@ -42,7 +42,6 @@ public class NoteService {
         note.setCreatedAt(LocalDateTime.now());
         note.setLikes(0);
 
-        // AI embedding — optional, won't crash if AI service is down
         try {
             if (dto.getContent() != null && !dto.getContent().isBlank()) {
                 List<Double> embedding = aiService.getEmbedding(dto.getContent());
@@ -77,7 +76,6 @@ public class NoteService {
         existing.setContent(dto.getContent());
         existing.setPublicNote(dto.isPublic());
 
-        // Update embedding too if AI is available
         try {
             if (dto.getContent() != null && !dto.getContent().isBlank()) {
                 List<Double> embedding = aiService.getEmbedding(dto.getContent());
@@ -118,4 +116,47 @@ public class NoteService {
         note.setLikes(note.getLikes() + 1);
         return NoteResponseDTO.from(noteRepository.save(note));
     }
+
+    // SEMANTIC SEARCH
+    public List<Note> semanticSearch(String query) {
+
+        List<Double> queryEmbedding = aiService.getEmbedding(query);
+
+        List<Note> notes = noteRepository.findAll();
+
+        notes.sort((a, b) -> {
+            double simA = cosineSimilarity(queryEmbedding, parseEmbedding(a.getEmbedding()));
+            double simB = cosineSimilarity(queryEmbedding, parseEmbedding(b.getEmbedding()));
+            return Double.compare(simB, simA);
+        });
+
+        return notes.subList(0, Math.min(5, notes.size()));
+    }
+
+   private double cosineSimilarity(List<Double> v1, List<Double> v2) {
+
+    double dot = 0;
+    double normA = 0;
+    double normB = 0;
+
+    for (int i = 0; i < v1.size(); i++) {
+        dot += v1.get(i) * v2.get(i);
+        normA += Math.pow(v1.get(i), 2);
+        normB += Math.pow(v2.get(i), 2);
+    }
+
+    return dot / (Math.sqrt(normA) * Math.sqrt(normB));
+}
+private List<Double> parseEmbedding(Float[] embedding) {
+
+    if (embedding == null) return List.of();
+
+    List<Double> result = new java.util.ArrayList<>();
+
+    for (Float f : embedding) {
+        result.add(f.doubleValue());
+    }
+
+    return result;
+}
 }

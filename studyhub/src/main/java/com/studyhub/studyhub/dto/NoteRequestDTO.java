@@ -1,16 +1,17 @@
 package com.studyhub.studyhub.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public class NoteRequestDTO {
 
     @NotBlank(message = "Title is required")
-    @Size(max = 150, message = "Title must be under 150 characters")
+    @Size(max = 200, message = "Title must be under 200 characters")
     private String title;
 
-    @Size(max = 10000, message = "Content must be under 10,000 characters")
+    @Size(max = 900000000, message = "Content must be under 900000000 characters")
     private String content;
 
     // FIX: @JsonProperty tells Jackson to map "isPublic" from frontend JSON

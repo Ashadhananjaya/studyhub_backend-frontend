@@ -9,6 +9,7 @@ model = SentenceTransformer("all-MiniLM-L6-v2")
 
 class TextRequest(BaseModel):
     text: str
+  
 
 @app.get("/")
 def home():

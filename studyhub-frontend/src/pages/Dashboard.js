@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { noteService } from "../services/noteService";
 import Navbar from "../components/Navbar";
 import NoteCard from "../components/NoteCard";
+import NoteModal from "../components/NoteModal";
 import toast from "react-hot-toast";
 import { PenLine, Search, Globe, Lock, StickyNote } from "lucide-react";
 
@@ -16,6 +17,7 @@ function useDebounce(value, delay) {
 }
 
 export default function Dashboard() {
+  const [activeNote, setActiveNote] = useState(null);
   const [notes, setNotes]       = useState([]);
   const [title, setTitle]       = useState("");
   const [content, setContent]   = useState("");
@@ -201,6 +203,7 @@ export default function Dashboard() {
                 >
                   <NoteCard
                     note={n}
+                    onView={() => setActiveNote(n)}
                     onLike={handleLike}
                     onEdit={(note) => {
                       setTitle(note.title); setContent(note.content);
@@ -218,6 +221,12 @@ export default function Dashboard() {
         )}
 
       </main>
+      {activeNote && (
+  <NoteModal
+    note={activeNote}
+    onClose={() => setActiveNote(null)}
+  />
+)}
     </div>
   );
 }
@@ -254,8 +263,13 @@ const s = {
   searchInput: { width: "100%", background: "var(--panel)", border: "1px solid var(--border)", borderRadius: "12px", padding: "12px 16px 12px 40px", color: "var(--text)", fontSize: "0.9rem", outline: "none", fontFamily: "'DM Sans', sans-serif", boxSizing: "border-box" },
 
   // Grid
-  grid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "16px" },
-  skeletonGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "16px" },
-  skeleton: { height: "220px" },
-  empty: { textAlign: "center", padding: "80px 20px", color: "var(--text-muted)", display: "flex", flexDirection: "column", alignItems: "center", gap: "12px", fontSize: "0.9rem" }
+ // Inside Dashboard.js styles:
+
+grid: { 
+  display: "grid", 
+  // Use '1fr' to ensure all cards in a row have exactly the same width
+  gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", 
+  gap: "24px", // Increased gap for breathability
+  alignItems: "stretch" // This is the secret for equal height cards
+}
 };

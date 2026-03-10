@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.studyhub.studyhub.dto.NoteRequestDTO;
 import com.studyhub.studyhub.dto.NoteResponseDTO;
+import com.studyhub.studyhub.model.Note;
 import com.studyhub.studyhub.service.NoteService;
 
 import jakarta.validation.Valid;
@@ -82,4 +83,8 @@ public class NoteController {
     public ResponseEntity<NoteResponseDTO> likeNote(@PathVariable Long noteId) {
         return ResponseEntity.ok(noteService.likeNote(noteId));
     }
+ @PostMapping("/search")
+public List<Note> semanticSearch(@RequestBody String query) {
+    return noteService.semanticSearch(query);
+}
 }
