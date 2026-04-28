@@ -108,14 +108,27 @@ public class NoteService {
         return noteRepository.findByPublicNoteTrue(pageable)
                 .map(NoteResponseDTO::from);
     }
+// Replace your existing likeNote method with this one
+public NoteResponseDTO likeNote(Long noteId, String email) {
+    Note note = noteRepository.findById(noteId)
+            .orElseThrow(() -> new RuntimeException("Note not found"));
 
-    public NoteResponseDTO likeNote(Long noteId) {
-        Note note = noteRepository.findById(noteId)
-                .orElseThrow(() -> new RuntimeException("Note not found"));
+    User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("User not found"));
 
+    // TOGGLE LOGIC
+    if (note.getLikedByUsers().contains(user)) {
+        // Already liked -> UNLIKE
+        note.getLikedByUsers().remove(user);
+        note.setLikes(Math.max(0, note.getLikes() - 1));
+    } else {
+        // Not liked yet -> LIKE
+        note.getLikedByUsers().add(user);
         note.setLikes(note.getLikes() + 1);
-        return NoteResponseDTO.from(noteRepository.save(note));
     }
+
+    return NoteResponseDTO.from(noteRepository.save(note));
+}
 
     // SEMANTIC SEARCH
     public List<Note> semanticSearch(String query) {

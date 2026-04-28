@@ -1,5 +1,6 @@
 package com.studyhub.studyhub.controller;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 
@@ -79,10 +80,11 @@ public class NoteController {
     }
 
     // ── Like a note ──────────────────────────────────────────
-    @PostMapping("/{noteId}/like")
-    public ResponseEntity<NoteResponseDTO> likeNote(@PathVariable Long noteId) {
-        return ResponseEntity.ok(noteService.likeNote(noteId));
-    }
+   @PostMapping("/{id}/like")
+public ResponseEntity<NoteResponseDTO> likeNote(@PathVariable Long id, Principal principal) {
+    // principal.getName() usually returns the email/username from the JWT
+    return ResponseEntity.ok(noteService.likeNote(id, principal.getName()));
+}
  @PostMapping("/search")
 public List<Note> semanticSearch(@RequestBody String query) {
     return noteService.semanticSearch(query);

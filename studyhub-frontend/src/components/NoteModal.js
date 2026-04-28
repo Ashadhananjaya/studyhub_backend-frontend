@@ -22,7 +22,7 @@ export default function NoteModal({ note, onClose }) {
     setLoadingAI(true);
     setSummaryOpen(true);
     try {
-      const res = await fetch("http://localhost:8000/summarize", {
+      const res = await fetch("http://localhost:8001/summarize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: note.content }),

@@ -1,17 +1,21 @@
 package com.studyhub.studyhub.model;
 
 import java.time.LocalDateTime;
+import java.util.HashSet; // Added
 import java.util.List;
+import java.util.Set;    // Added
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import jakarta.persistence.Column;
+import jakarta.persistence.Column; // Using wildcard for cleaner look
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
@@ -24,8 +28,9 @@ public class Note {
     private Long id;
 
     private String title;
-   @Column(columnDefinition = "TEXT")
-private String content;
+    
+    @Column(columnDefinition = "TEXT")
+    private String content;
 
     @Column(name = "is_public")
     @JsonProperty("isPublic")
@@ -42,19 +47,27 @@ private String content;
     @JoinColumn(name = "user_id")
     private User user;
 
+    // --- NEW: LIKES RELATIONSHIP ---
+    @ManyToMany
+    @JoinTable(
+      name = "note_likes",
+      joinColumns = @JoinColumn(name = "note_id"),
+      inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    @JsonIgnore // Prevent circular reference in JSON
+    private Set<User> likedByUsers = new HashSet<>();
+
     public Note() {}
 
+    // Getters and Setters
     public Long getId() { return id; }
-
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
-
     public String getContent() { return content; }
     public void setContent(String content) { this.content = content; }
 
     @JsonProperty("isPublic")
     public boolean isPublicNote() { return publicNote; }
-    @JsonProperty("isPublic")
     public void setPublicNote(boolean publicNote) { this.publicNote = publicNote; }
 
     public int getLikes() { return likes; }
@@ -67,7 +80,6 @@ private String content;
     public void setUser(User user) { this.user = user; }
 
     public Float[] getEmbedding() { return embedding; }
-
     public void setEmbedding(List<Double> embeddingList) {
         if (embeddingList == null) return;
         Float[] arr = new Float[embeddingList.size()];
@@ -76,4 +88,7 @@ private String content;
         }
         this.embedding = arr;
     }
+
+    public Set<User> getLikedByUsers() { return likedByUsers; }
+    public void setLikedByUsers(Set<User> likedByUsers) { this.likedByUsers = likedByUsers; }
 }

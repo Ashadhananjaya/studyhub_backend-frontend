@@ -19,6 +19,6 @@ export const noteService = {
     deleteNote: (noteId) =>
         API.delete(`/notes/${noteId}`),
 
-    likeNote: (noteId) =>
-        API.post(`/notes/${noteId}/like`, {}),
+   // in noteService.js
+likeNote: (id) => API.post(`/notes/${id}/like`),
 };
