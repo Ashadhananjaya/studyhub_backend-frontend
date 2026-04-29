@@ -1,0 +1,7 @@
+dpg-d7odr3i8qa3s73ahun00-a
+studyhub_1xc4_user   username 
+8WEqamQuYuTpT8pFDfAgGlAd2bgcjTRk     password
+postgresql://studyhub_1xc4_user:8WEqamQuYuTpT8pFDfAgGlAd2bgcjTRk@dpg-d7odr3i8qa3s73ahun00-a/studyhub_1xc4   internal database url
+postgresql://studyhub_1xc4_user:8WEqamQuYuTpT8pFDfAgGlAd2bgcjTRk@dpg-d7odr3i8qa3s73ahun00-a.singapore-postgres.render.com/studyhub_1xc4  
+external 
+PGPASSWORD=8WEqamQuYuTpT8pFDfAgGlAd2bgcjTRk psql -h dpg-d7odr3i8qa3s73ahun00-a.singapore-postgres.render.com -U studyhub_1xc4_user studyhub_1xc4    psql command   
